@@ -3,7 +3,6 @@ from flask_cors import CORS
 from config import config
 import pandas as pd
 import json
-import datetime
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
