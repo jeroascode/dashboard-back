@@ -28,8 +28,6 @@ df_event_students.loc[df_event_students['Asignatura'].str.startswith('arqu') & (
 df_event_students.loc[df_event_students['Asignatura'].str.startswith('Semi') & (df_event_students.Programa_Academico == 'Ingeniería de Sistemas y Computación'), 'Asignatura'] = 'Semillero Seguridad Telematics'
 df_event_students.loc[df_event_students['Asignatura'].str.startswith('electiva iii') & (df_event_students.Programa_Academico == 'Ingeniería de Sistemas y Computación'), 'Asignatura'] = 'Electiva iii'
 
-
-
 df_assitance1 = pd.read_csv('../data/2023-09-06 09_33.csv',sep=';',encoding = "UTF-8")
 
 df_assitance2 = pd.read_csv('../data/2023-09-08 09_30.csv',sep=',',encoding = "UTF-8")
@@ -42,7 +40,6 @@ df_event_students['Session_1'] = df_event_students['Correo'].apply(lambda text: 
 df_event_students['Session_2'] = df_event_students['Correo'].apply(lambda text: True if text in df_assitance2['Correo'].values else False)
 df_event_students['Session_3'] = df_event_students['Correo'].apply(lambda text: True if text in df_assitance3['Correo'].values else False)
 df_event_students['Session_4'] = df_event_students['Correo'].apply(lambda text: True if text in df_assitance4['Correo'].values else False)
-
 
 print(df_event_students)
 
@@ -57,10 +54,12 @@ def index():
   
     return jsonify({'assitance': parsed_json})
 
-#Materias únicas
-@app.route('/subject')
-def subject():
-    return jsonify({'Subjects': df_students['Asignatura'].unique().tolist()})
+#Asistencia por asignatura
+@app.route('/assistance-by-subject')
+def assitanceBySubject():
+    df_assitance = df_students.groupby(['Asignatura']).agg({'Session_1': 'sum', 'Session_2': 'sum', 'Session_3': 'sum', 'Session_4': 'sum'}).reset_index()
+    parsed_json = json.loads(df_assitance.to_json(orient='records'))
+    return jsonify({'Subjects': parsed_json})
 
 #Top de materias por asistencia (descendente)
 @app.route('/top-subject')
@@ -70,10 +69,10 @@ def topSubject():
     
     return jsonify({'Subjects': parsed_json})
 
-#Materia con menor asistencia
-@app.route('/top-subject-min')
-def topSubjectMin():
-    df_top_subject = df_students.groupby(['Asignatura']).apply(lambda x: x['Session_1'].sum() + x['Session_2'].sum() + x['Session_3'].sum() + x['Session_4'].sum()).reset_index(name='Total').min()
+#Materia con mayor asistencia  
+@app.route('/top-subject-max')
+def topSubjectMax():
+    df_top_subject = df_students.groupby(['Asignatura']).apply(lambda x: x['Session_1'].sum() + x['Session_2'].sum() + x['Session_3'].sum() + x['Session_4'].sum()).reset_index(name='Total').max()
     parsed_json = json.loads(df_top_subject.to_json(orient='records'))
     
     return jsonify({'Subjects': parsed_json})
